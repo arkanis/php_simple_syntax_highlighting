@@ -180,15 +180,17 @@ return [
 	"html" => <<<'EOD'
 		(
 		    # Embedded JavaScript (catch strings in scripts in case they contain "</script>" and would wrongly end the script section)
-		    (?<landmark_c01> <script ) (?<lang_html_attr0> [^>]+ )? (?<landmark_c02> > ) (?: .* \n )? (?<lang_js> [\s\S]*? (?: (?: " [^"]*? " | ' [^']*? ' | ` [^`]*? ` ) [\s\S]*? )* ) (?<landmark_c03> </script> )
+		    (?<variation_c01> <script ) (?<lang_html_attr0> [^>]+ )? (?<variation_c02> > ) (?: .* \n )? (?<lang_js> [\s\S]*? (?: (?: " [^"]*? " | ' [^']*? ' | ` [^`]*? ` ) [\s\S]*? )* ) (?<variation_c03> </script> )
 		|   # Embedded CSS
-		    (?<landmark_c11> <style ) (?<lang_html_attr1> [^>]+ )? (?<landmark_c12> > ) (?<lang_css> [\s\S]*? ) (?<landmark_c13> </style> )
+		    (?<variation_c11> <style ) (?<lang_html_attr1> [^>]+ )? (?<variation_c12> > ) (?<lang_css> [\s\S]*? ) (?<variation_c13> </style> )
 		|   # Embedded PHP
-		    (?<landmark_c21> <\? (?: php | = )? ) (?<lang_php> [\s\S]*? (?: (?: " [^"]*? " | ' [^']*? ' | <<< '? (?<_id> \w+ ) '? \n [\s\S]+? \g{_id} ) [\s\S]*? )* ) (?<landmark_c22> \?> )
+		    (?<variation_c21> <\? (?: php | = )? ) (?<lang_php> [\s\S]*? (?: (?: " [^"]*? " | ' [^']*? ' | <<< '? (?<_id> \w+ ) '? \n [\s\S]+? \g{_id} ) [\s\S]*? )* ) (?<variation_c22> \?> )
 		|   # HTML start tags
-		    (?<landmark_c31> < !? \w+ ) (?<lang_html_attr2> [^>]+ )? (?<landmark_c32> > )
+		    (?<variation_c31> < \w+ ) (?<lang_html_attr2> [\s\S]*? (?: (?: " [^"]*? " | ' [^']*? ' ) [\s\S]*? )* ) (?<variation_c32> > )
+		|   # Doctype
+		    (?<variation_c41> <! \w+ ) (?<variation_a> [^>]+ )? (?<variation_c42> > )
 		|   # HTML end tags
-		    (?<landmark_c>  </ \w+ > )
+		    (?<variation_c>  </ \w+ > )
 		|   # Comments
 		    (?<backdrop_a>  <!-- [\s\S]+? --> )
 		)x
@@ -196,7 +198,7 @@ return [
 	"html_attr" => <<<'EOD'
 		(
 		    # Attribute name
-		    (?<variation_a> \w+ )
+		    (?<variation_a> [\w-]+ )
 		    # Optionally followed by a value
 		    (?: = (?<variation_b> " [^"]*? " | ' [^']*? ' | \S+ ) )?
 		)x
