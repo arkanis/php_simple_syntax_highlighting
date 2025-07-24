@@ -1,7 +1,6 @@
 <?php
 
 require_once("simple_syntax_highlighting.php");
-$language_definitions = include("language_definitions.php");
 
 $code_examples = [
 	["java", "Nested loops with math", <<<'EOD'
@@ -560,12 +559,9 @@ $code_examples = [
 
 <?php foreach($code_examples as [$language_name, $description, $code]): ?>
 <p><?= $language_name ?>: <?= htmlspecialchars($description) ?></p>
-<pre><code class=lang_<?= $language_name ?>><?= simple_syntax_highlighting($code, $language_name, $language_definitions) ?></code></pre>
+<pre><code class=lang_<?= $language_name ?>><?= simple_syntax_highlighting($code, $language_name) ?></code></pre>
 <hr>
 <?php endforeach ?>
 
-<?php
-$glsl_code = "return vec4(pos.xyz, 1);";
-$html = simple_syntax_highlighting($glsl_code, "glsl", $language_definitions);
-?>
-<pre><code class=lang_glsl><?= $html ?></code></pre>
+<p>No fuss example:</p>
+<pre><code class=lang_glsl><?= simple_syntax_highlighting("return vec4(pos.xyz, 1);", "glsl") ?></code></pre>
