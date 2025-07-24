@@ -139,7 +139,7 @@ return [
 		|   # Strings
 		    (?<variation_b>  ' .*? (?<!\\) ' | " .*? (?<!\\) " )
 		|   # Command (first word in a line)
-		    (?<variation_c>  ^ [ \t]* \w+ )
+		    (?<variation_c>  ^ [ \t]* [\w./]+ )
 		|   # Comments
 		    (?<backdrop_a>   \# .* )
 		)xm
