@@ -5,10 +5,8 @@ A simple to-the-point syntax highlighting function written in PHP. About 40 line
 
 ~~~ php
 require_once("simple_syntax_highlighting.php");
-$language_definitions = include("language_definitions.php");
 
-$glsl_code = "return vec4(pos.xyz, 1);";
-$html = simple_syntax_highlighting($glsl_code, "glsl", $language_definitions);
+$html = simple_syntax_highlighting("return vec4(pos.xyz, 1);", "glsl");
 // → <span class="landmark_b">return</span> <span class="landmark_c">vec4</span>(pos.<span class="variation_b">xyz</span>, <span class="variation_a">1</span>);
 ~~~
 ~~~ html
@@ -29,22 +27,23 @@ $html = simple_syntax_highlighting($glsl_code, "glsl", $language_definitions);
 <pre><code class=lang_glsl><?= $html ?></code></pre>
 ~~~
 
-- It's just one function: `simple_syntax_highlighting($code, $language_name, $language_definitions)`
-- You can manage `$language_definitions` however you want. It's just an language_name => regex array. Here I put it into an extra file. You can put it into the same file as the function if you want.
-- The styling is done via CSS. Names like "keyword" or "control-flow" get awkward for HTML, CSS, etc. Instead I went with "landmarks" and "variations".
-  Clusters of landmarks should catch your eye (e.g. class definitions) while variation colors should just create navigatable color patterns.
+- It's just one function: `simple_syntax_highlighting($code, $language_name)`.
+- The PHP code is tiny and this makes it easy to check. The rest are regex language definitions, but they can't hijack your system.
+- The language definitions are inside `simple_syntax_highlighting()` for ease of use. But you can change that however you want. It's just an language_name => regex array.
+- The styling is done via CSS. Names like "keyword" or "control-flow" get awkward for HTML, CSS, etc. Instead I went with "landmarks", "variations" and "backdrops".
+  Clusters of landmarks should catch your eye (e.g. class definitions) while variation colors should just create navigatable color patterns. And backdrop puts something in the background (e.g. comments).
 
 
 ## The core ideas
 
 1. Each language is one regular expression. Don't panic, extended features make those a lot easier to work with in PHP than in e.g. JavaScript or Java.
 2. Each named group that matches something is translated into a `span` element: `(?<keyword> … )` → `<span class=keyword>…</span>`.
-3. A group name like "lang_xyz" highlights matched text in language xyz.
+3. A group name like "lang_xyz" recursively highlights matched text in language xyz.
 
 Details:
 
-- Group names starting with `_` are ignored. You can use those how ever you want, e.g. for recursive patterns or matching heredoc tags.
-- Numbers are stripped from the end of group names, e.g. "keyword1" and "keyword27" are both treated as just "keyword".
+- Group names starting with `_` are ignored. You can use those how ever you want, e.g. for recursive patterns or back references.
+- Numbers are stripped from the end of group names, e.g. "keyword1" and "keyword27" both result in `<span class=keyword>…</span>`.
   This is useful if you want to match constructs that have e.g. multiple keywords with other stuff inbetween.
 - "lang_xyz" group names allow for nested languages like JS, CSS or PHP in HTML.
   They can also be used to split one language into mutliple regular expressions to simplify stuff (I used that for HTML attributes).
@@ -52,12 +51,18 @@ Details:
 
 ## Adding support for your own language
 
-Let's say we want to support for an INI-like language:
+Let's say we want to add support for an INI-like language:
 
 ~~~
 [section name]
 name=value
 ~~~
+
+`simple_syntax_highlighting` uses PHPs regular expressions for language definitions.
+Regular expressions got a bad reputation, and while they're not simple, they're also not that complex. And for the complexity they put on the table they're extraordinarily useful. Spending a week to learn them over 20 years ago was one of the best spend weeks of my life.
+
+Anyway, this isn't a regex tutorial. If you don't know the basics take a quick look at a tutorial.
+Instead I'll explain the PHP and regex features that I use to make it simpler to work with them.
 
 1. Add an empty regex to `$language_definitions` for the `ini` language:
    
@@ -72,9 +77,10 @@ name=value
    
    - This uses PHPs [nowdoc string syntax](https://php.net/nowdoc). That way we don't have to worry about escaping quotes or `$` signs.
    - We use `()` as regex delimiters (PHP allows [several](https://php.net/regexp.reference.delimiters)). That way we don't have to escape `/` characters.
-     Together with nowdow we don't have to worry about double escaping or escaping anything outside of regex characters themselves.
+     Together with nowdow we don't have to worry about double escaping or escaping anything except special regex characters themselves.
    - The [`x` extended syntax modifier](https://php.net/reference.pcre.pattern.modifiers) of the regex ignores whitespaces and allows `# comments`.
-     With it we can structure our regex however we want without getting a single line thats an unreadable mess.
+     With it we can structure our regex into multiple lines, indent code, add comments, etc.
+     In short, we don't end up with a single line thats an unreadable mess.
    
 2. Add named groups to match the parts you want to highlight:
    
@@ -134,7 +140,7 @@ name=value
   
 - [Recursive patterns](https://php.net/regexp.reference.recursive) to match complex stuff with matching brackets. But I only used that for Rubys [percent literals](https://ruby-doc.org/3.4.1/syntax/literals_rdoc.html#label-Percent+Literals) so far.
   
-- Finding the endpoint of the nested languages can be a bit tricky. Simplified JS in HTML starts with `<script>` and ends with `</script>`.
+- Finding the endpoint of nested languages can be a bit tricky. Simplified JS in HTML starts with `<script>` and ends with `</script>`.
   But there is quite a bit of JS code out there that contains something like `output += "</script>"`.
   
   In that case I found it helpful to match JS strings while searching the closing `</script>`. That way `"</script>"` is consumed as a string and not matched as `</script>`.
@@ -151,7 +157,7 @@ name=value
 
 Goals:
 
-- Reasonable not necessarily correct syntax highlighting for blogs, etc.
+- Reasonable, not necessarily correct, syntax highlighting for blogs, etc.
 - Keep the syntax highlighting logic simple and fast
 - Use extended regexp features of PHP to make language definitions relatively simple and compact. Most languages are just one regexp with 10-20 lines.
 
